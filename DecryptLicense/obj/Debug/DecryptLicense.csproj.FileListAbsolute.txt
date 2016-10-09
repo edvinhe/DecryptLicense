@@ -1,0 +1,6 @@
+c:\users\edhe.fareast\documents\visual studio 2013\Projects\DecryptLicense\DecryptLicense\bin\Debug\DecryptLicense.exe.config
+c:\users\edhe.fareast\documents\visual studio 2013\Projects\DecryptLicense\DecryptLicense\bin\Debug\DecryptLicense.exe
+c:\users\edhe.fareast\documents\visual studio 2013\Projects\DecryptLicense\DecryptLicense\bin\Debug\DecryptLicense.pdb
+c:\users\edhe.fareast\documents\visual studio 2013\Projects\DecryptLicense\DecryptLicense\obj\Debug\DecryptLicense.csprojResolveAssemblyReference.cache
+c:\users\edhe.fareast\documents\visual studio 2013\Projects\DecryptLicense\DecryptLicense\obj\Debug\DecryptLicense.exe
+c:\users\edhe.fareast\documents\visual studio 2013\Projects\DecryptLicense\DecryptLicense\obj\Debug\DecryptLicense.pdb
