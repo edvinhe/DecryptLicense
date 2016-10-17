@@ -1,0 +1,6 @@
+C:\work\DecryptLicense\DecryptLicense\bin\Release\DecryptLicense.exe.config
+C:\work\DecryptLicense\DecryptLicense\obj\Release\DecryptLicense.csprojResolveAssemblyReference.cache
+C:\work\DecryptLicense\DecryptLicense\bin\Release\DecryptLicense.exe
+C:\work\DecryptLicense\DecryptLicense\bin\Release\DecryptLicense.pdb
+C:\work\DecryptLicense\DecryptLicense\obj\Release\DecryptLicense.exe
+C:\work\DecryptLicense\DecryptLicense\obj\Release\DecryptLicense.pdb

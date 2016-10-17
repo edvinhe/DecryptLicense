@@ -19,6 +19,18 @@ namespace DecryptLicense
           start2();
         }
 
+        static void start3()
+        {
+          FileUtil fu = new FileUtil();
+
+          List<byte> originalLicense = getBytes(@"C:\Users\edhe.FAREAST\Documents\My Received Files\license");
+          String originalStr = Encoding.UTF8.GetString(fu.decompressFile(originalLicense.ToArray()));
+          Console.WriteLine(originalStr);
+
+
+          Console.ReadLine();
+        }
+
       static void start2()
         {
           Console.WriteLine("========================Licence文件生成工具========================");
@@ -34,18 +46,13 @@ namespace DecryptLicense
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             MachineInfo mf = serializer.Deserialize<MachineInfo>(input);
             // We get machine info now
-            List<String> deviceList = getDeviceList(mf);
+            String deviceList = getDeviceList(mf);
 
             StringBuilder sb = new StringBuilder();
             sb.Append("{");
-            sb.Append("\"StationCode\":\"" + mf.StationCode + "\",\"DebugMode\":1,\"DeviceList\":[");
-            foreach (string d in deviceList)
-            {
-              sb.Append("\"" + d + "\",");
-            }
-
-            sb.Remove(sb.ToString().Length - 1, 1);
-            sb.Append("],\"Version\":\"1.0.0.2\",\"StartTimeValue\":\"2015-07-02 00:00:00\",\"EndTimeValue\":\"2065-07-02 00:00:00\"}");
+            sb.Append("\"LocationStation\":{\"StationCode\":\""+ mf.StationCode+"\",\"StationName\":\""+mf.StationName+"\"},\"DebugMode\":1,\"DeviceList\":{");
+            sb.Append(deviceList);
+            sb.Append("},\"Version\":\"1.0.0.2\",\"StartTimeValue\":\"2016-10-13 00:00:00\",\"EndTimeValue\":\"2066-01-13 23:59:59\"}");
 
             RSACryptoServiceProvider provider3 = new RSACryptoServiceProvider();
             byte[] bytes = Encoding.UTF8.GetBytes(provider3.ToXmlString(true));
@@ -68,9 +75,9 @@ namespace DecryptLicense
             result.CopyTo(array, bytes.Length);
             byte[] buffer6 = fileUtil.compressFile(array);
 
-            string newLicenFilePath = machineFilePath.Substring(0,machineFilePath.LastIndexOf("\\")) + "\\licence";
+            string newLicenFilePath = machineFilePath.Substring(0,machineFilePath.LastIndexOf("\\")) + "\\license";
             File.WriteAllBytes(newLicenFilePath, buffer6);
-            Console.WriteLine("新的licence文件所在文件路径为：  " + newLicenFilePath);
+            Console.WriteLine("新的license文件所在文件路径为：  " + newLicenFilePath);
           }
           else
           {
@@ -82,31 +89,70 @@ namespace DecryptLicense
           Console.ReadLine();
         }
 
-        static List<String> getDeviceList(MachineInfo mf)
+        static String getDeviceList(MachineInfo mf)
         {
-          List<int> deviceList = new List<int>();
+          StringBuilder sb = new StringBuilder();
           String tempList = mf.EquipmentsXml;
+          tempList = tempList.Substring(1);
+          XmlDocument doc = new XmlDocument();
+          doc.LoadXml(tempList);
+          Dictionary<string, List<string>> deviceModelMap = new Dictionary<string, List<string>>();
 
-          Regex regex = new Regex(@"<IDENO_EQT>(.*?)</IDENO_EQT>");
+          XmlNodeList xmlNodes = doc.DocumentElement.SelectNodes("/NewDataSet/Table");
+             foreach(XmlNode xmlNode in xmlNodes)
+             {
+               List<string> ll = null;
 
-          foreach (Match match in regex.Matches(tempList))
+               String deviceCode = xmlNode["NUM_EQT"].InnerText;
+               String deviceID = xmlNode["IDENO_EQT"].InnerText;
+               String deviceName = xmlNode["NAME_EQT"].InnerText;
+               String deviceModel = xmlNode["MODNUM_EQT"].InnerText;
+               String deviceIP = xmlNode["IPAdd_EQT"].InnerText;
+
+               string temp = "{\"DeviceCode\":\"" + deviceCode + "\",\"DeviceId\":\"" + deviceID
+                  + "\",\"DeviceName\":\"" + deviceName + "\",\"DeviceModel\":\"" + deviceModel
+                  + "\",\"DeviceIp\":\"" + deviceIP + "\"},";
+
+               deviceModelMap.TryGetValue(deviceModel, out ll);
+               if(ll == null)
+               {
+                 ll = new List<string>();
+               }
+               ll.Add(temp);
+
+               if (!deviceModelMap.Keys.Contains(deviceModel))
+               {
+                 deviceModelMap.Add(deviceModel, ll);
+               }
+             }
+
+          foreach(String key in deviceModelMap.Keys)
           {
-            String d = match.Value.Substring(11, match.Value.IndexOf("</IDENO_EQT>")-11);
-            if (!deviceList.Contains(Int32.Parse(d)))
-            {
-                 deviceList.Add(Int32.Parse(d));
-            }
+            List<String> dd = null;
+
+            deviceModelMap.TryGetValue(key, out dd);
+            dd[dd.Count - 1] = dd[dd.Count - 1].Substring(0, dd[dd.Count - 1].Length - 1);
           }
 
-          deviceList.Sort();
+           foreach(string key in deviceModelMap.Keys)
+           {
+             sb.Append("\"" + key + "\":[");
+             List<string> tt = null;
 
-          List<String> result = new List<String>();
-          foreach(int d in deviceList)
-          {
-            result.Add(d.ToString());
-          }
+             deviceModelMap.TryGetValue(key, out tt);
+             if(tt != null)
+             {
+                foreach(string kk in tt)
+                {
+                  sb.Append(kk);
+                }
+             }
+             sb.Append("],");
+           }
 
-          return result;
+           String result = sb.ToString();
+
+           return result.Substring(0, result.Length - 1);
         }
         static List<byte> getBytes(string filePath)
         {
