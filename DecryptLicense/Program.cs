@@ -16,7 +16,7 @@ namespace DecryptLicense
     {
         static void Main(string[] args)
         {
-          start2();
+          generateLicenseFile();
         }
 
         static void start3()
@@ -31,7 +31,7 @@ namespace DecryptLicense
           Console.ReadLine();
         }
 
-      static void start2()
+      static void generateLicenseFile()
         {
           Console.WriteLine("========================Licence文件生成工具========================");
           Console.WriteLine();
@@ -46,7 +46,19 @@ namespace DecryptLicense
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             MachineInfo mf = serializer.Deserialize<MachineInfo>(input);
             // We get machine info now
-            String deviceList = getDeviceList(mf);
+            Console.WriteLine("生成简单license文件？ (yes/no)");
+            string answer = Console.ReadLine();
+            bool flag = true;
+            if(answer.Trim().Equals("yes") || answer.Trim().Equals("Yes") || answer.Trim().Equals("YES"))
+            {
+              flag = true;
+            }
+            else
+            {
+              flag = false;
+            }
+
+            String deviceList = getDeviceList(mf, flag);
 
             StringBuilder sb = new StringBuilder();
             sb.Append("{");
@@ -89,7 +101,7 @@ namespace DecryptLicense
           Console.ReadLine();
         }
 
-        static String getDeviceList(MachineInfo mf)
+        static String getDeviceList(MachineInfo mf, bool simpleLicenseFile)
         {
           StringBuilder sb = new StringBuilder();
           String tempList = mf.EquipmentsXml;
@@ -99,60 +111,89 @@ namespace DecryptLicense
           Dictionary<string, List<string>> deviceModelMap = new Dictionary<string, List<string>>();
 
           XmlNodeList xmlNodes = doc.DocumentElement.SelectNodes("/NewDataSet/Table");
-             foreach(XmlNode xmlNode in xmlNodes)
-             {
-               List<string> ll = null;
-
-               String deviceCode = xmlNode["NUM_EQT"].InnerText;
-               String deviceID = xmlNode["IDENO_EQT"].InnerText;
-               String deviceName = xmlNode["NAME_EQT"].InnerText;
-               String deviceModel = xmlNode["MODNUM_EQT"].InnerText;
-               String deviceIP = xmlNode["IPAdd_EQT"].InnerText;
-
-               string temp = "{\"DeviceCode\":\"" + deviceCode + "\",\"DeviceId\":\"" + deviceID
-                  + "\",\"DeviceName\":\"" + deviceName + "\",\"DeviceModel\":\"" + deviceModel
-                  + "\",\"DeviceIp\":\"" + deviceIP + "\"},";
-
-               deviceModelMap.TryGetValue(deviceModel, out ll);
-               if(ll == null)
-               {
-                 ll = new List<string>();
-               }
-               ll.Add(temp);
-
-               if (!deviceModelMap.Keys.Contains(deviceModel))
-               {
-                 deviceModelMap.Add(deviceModel, ll);
-               }
-             }
-
-          foreach(String key in deviceModelMap.Keys)
+          if (!simpleLicenseFile)
           {
-            List<String> dd = null;
+            foreach (XmlNode xmlNode in xmlNodes)
+            {
+              List<string> ll = null;
 
-            deviceModelMap.TryGetValue(key, out dd);
-            dd[dd.Count - 1] = dd[dd.Count - 1].Substring(0, dd[dd.Count - 1].Length - 1);
-          }
+              String deviceCode = xmlNode["NUM_EQT"].InnerText;
+              String deviceID = xmlNode["IDENO_EQT"].InnerText;
+              String deviceName = xmlNode["NAME_EQT"].InnerText;
+              String deviceModel = xmlNode["MODNUM_EQT"].InnerText;
+              String deviceIP = xmlNode["IPAdd_EQT"].InnerText;
 
-           foreach(string key in deviceModelMap.Keys)
-           {
-             sb.Append("\"" + key + "\":[");
-             List<string> tt = null;
+              string temp = "{\"DeviceCode\":\"" + deviceCode + "\",\"DeviceId\":\"" + deviceID
+                 + "\",\"DeviceName\":\"" + deviceName + "\",\"DeviceModel\":\"" + deviceModel
+                 + "\",\"DeviceIp\":\"" + deviceIP + "\"},";
 
-             deviceModelMap.TryGetValue(key, out tt);
-             if(tt != null)
-             {
-                foreach(string kk in tt)
+              deviceModelMap.TryGetValue(deviceModel, out ll);
+              if (ll == null)
+              {
+                ll = new List<string>();
+              }
+              ll.Add(temp);
+
+              if (!deviceModelMap.Keys.Contains(deviceModel))
+              {
+                deviceModelMap.Add(deviceModel, ll);
+              }
+            }
+
+            foreach (String key in deviceModelMap.Keys)
+            {
+              List<String> dd = null;
+
+              deviceModelMap.TryGetValue(key, out dd);
+              dd[dd.Count - 1] = dd[dd.Count - 1].Substring(0, dd[dd.Count - 1].Length - 1);
+            }
+
+            foreach (string key in deviceModelMap.Keys)
+            {
+              sb.Append("\"" + key + "\":[");
+              List<string> tt = null;
+
+              deviceModelMap.TryGetValue(key, out tt);
+              if (tt != null)
+              {
+                foreach (string kk in tt)
                 {
                   sb.Append(kk);
                 }
-             }
-             sb.Append("],");
-           }
+              }
+              sb.Append("],");
+            }
 
-           String result = sb.ToString();
+            String result = sb.ToString();
 
-           return result.Substring(0, result.Length - 1);
+            return result.Substring(0, result.Length - 1);
+          }
+          else
+          {
+            sb.Append("\"PIS\":[");
+            foreach (XmlNode xmlNode in xmlNodes)
+            {
+              if (xmlNode["MODNUM_EQT"].InnerText.Equals("PIS"))
+              {
+                String deviceCode = xmlNode["NUM_EQT"].InnerText;
+                String deviceID = xmlNode["IDENO_EQT"].InnerText;
+                String deviceName = xmlNode["NAME_EQT"].InnerText;
+                String deviceModel = xmlNode["MODNUM_EQT"].InnerText;
+                String deviceIP = xmlNode["IPAdd_EQT"].InnerText;
+
+                string temp = "{\"DeviceCode\":\"" + deviceCode + "\",\"DeviceId\":\"" + deviceID
+                   + "\",\"DeviceName\":\"" + deviceName + "\",\"DeviceModel\":\"" + deviceModel
+                   + "\",\"DeviceIp\":\"" + deviceIP + "\"},";
+                sb.Append(temp);
+              }
+            }
+
+            String result = sb.ToString();
+            result = result.Substring(0, result.Length - 1);
+            result = result + "]";
+
+            return result;
+          }
         }
         static List<byte> getBytes(string filePath)
         {
