@@ -17,9 +17,11 @@ namespace DecryptLicense
         static void Main(string[] args)
         {
           generateLicenseFile();
+          //printLicenseFileContent();
+          //printMachineFileContent();
         }
 
-        static void start3()
+        static void printLicenseFileContent()
         {
           FileUtil fu = new FileUtil();
 
@@ -28,6 +30,18 @@ namespace DecryptLicense
           Console.WriteLine(originalStr);
 
 
+          Console.ReadLine();
+        }
+
+      static void printMachineFileContent()
+        {
+          FileUtil fileUtil = new FileUtil();
+          List<byte> list = getBytes(@"C:\Users\edhe.FAREAST\Documents\My Received Files\machine");
+          string input = Encoding.UTF8.GetString(fileUtil.decompressFile(list.ToArray()));
+          JavaScriptSerializer serializer = new JavaScriptSerializer();
+          MachineInfo mf = serializer.Deserialize<MachineInfo>(input);
+
+          Console.WriteLine(mf.EquipmentsXml);
           Console.ReadLine();
         }
 
